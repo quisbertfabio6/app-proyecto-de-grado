@@ -5,13 +5,9 @@ import 'dart:io';
 import '../utils/database_helper.dart';
 
 class ApiService {
-  // ⚠️ RECUERDA: Esta URL cambia cada vez que reinicias el túnel Cloudflare
-  static const String baseUrl =
-      'https://attend-guarantees-two-michael.trycloudflare.com/api';
+  static const String baseUrl = 'sdasdasdadsdas/api';
 
-  // --------------------------------------------------------
   // AUTENTICACIÓN Y SESIÓN
-  // --------------------------------------------------------
 
   // 1. Iniciar Sesión
   static Future<Map<String, dynamic>> login(
@@ -83,9 +79,7 @@ class ApiService {
     return prefs.getString('user_rol');
   }
 
-  // --------------------------------------------------------
   // MÓDULO ESTUDIANTE
-  // --------------------------------------------------------
 
   static Future<Map<String, dynamic>> enviarLicencia({
     required String motivo,

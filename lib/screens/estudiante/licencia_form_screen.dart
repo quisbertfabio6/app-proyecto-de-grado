@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart'; // <-- NUEVA LIBRERÍA
 import '../../services/api_service.dart';
 import '../../utils/sound_manager.dart';
 
@@ -20,6 +21,29 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
   File? _archivoAdjunto; // Puede ser Foto o PDF
   String? _tipoArchivo; // 'imagen' o 'pdf'
   bool _isLoading = false;
+
+  // --- NUEVA FUNCIÓN: Compresión de imagen ---
+  Future<File?> _comprimirImagen(File file) async {
+    final filePath = file.absolute.path;
+    // Creamos una nueva ruta para el archivo comprimido
+    final outPath = "${filePath.substring(0, filePath.lastIndexOf('.'))}_compressed.jpg";
+
+    final XFile? result = await FlutterImageCompress.compressAndGetFile(
+      filePath, 
+      outPath,
+      quality: 60, // 60% de calidad es perfecto para documentos sin perder legibilidad
+      minWidth: 1024, // Redimensiona si la imagen es gigante (ej. 4K)
+      minHeight: 1024,
+    );
+
+    if (result != null) {
+      print("Tamaño original: ${file.lengthSync()} bytes");
+      print("Tamaño comprimido: ${await result.length()} bytes");
+      return File(result.path);
+    }
+    return file; // Si falla por alguna razón, devuelve el archivo original
+  }
+  // ------------------------------------------
 
   // Selector de Fecha
   Future<void> _seleccionarFecha(TextEditingController controller) async {
@@ -53,8 +77,12 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
                   source: ImageSource.camera,
                 );
                 if (photo != null) {
+                  // Aplicamos la compresión antes de guardar en el estado
+                  File imagenOriginal = File(photo.path);
+                  File? imagenComprimida = await _comprimirImagen(imagenOriginal);
+
                   setState(() {
-                    _archivoAdjunto = File(photo.path);
+                    _archivoAdjunto = imagenComprimida ?? imagenOriginal;
                     _tipoArchivo = 'imagen';
                   });
                 }
@@ -69,8 +97,12 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
                   source: ImageSource.gallery,
                 );
                 if (image != null) {
+                  // Aplicamos la compresión antes de guardar en el estado
+                  File imagenOriginal = File(image.path);
+                  File? imagenComprimida = await _comprimirImagen(imagenOriginal);
+
                   setState(() {
-                    _archivoAdjunto = File(image.path);
+                    _archivoAdjunto = imagenComprimida ?? imagenOriginal;
                     _tipoArchivo = 'imagen';
                   });
                 }
@@ -81,7 +113,7 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
               title: const Text('Subir Documento PDF'),
               onTap: () async {
                 Navigator.pop(context);
-                // Usamos FilePicker para buscar PDFs
+                // Usamos FilePicker para buscar PDFs (Los PDF no se comprimen con esta librería)
                 FilePickerResult? result = await FilePicker.platform.pickFiles(
                   type: FileType.custom,
                   allowedExtensions: ['pdf'],
