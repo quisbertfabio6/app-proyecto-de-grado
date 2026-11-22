@@ -7,6 +7,7 @@ import '../login_screen.dart';
 import 'detalle_curso_screen.dart';
 import '../../utils/sound_manager.dart';
 import '../../widgets/sita_dashboard_ui.dart';
+import '../../theme/sita_theme.dart';
 
 class DocenteHomeScreen extends StatefulWidget {
   const DocenteHomeScreen({super.key});
@@ -131,24 +132,25 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: sitaInk,
-        title: const Row(
+        backgroundColor: sitaSurfaceFor(context),
+        foregroundColor: sitaInkFor(context),
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.school_rounded, color: sitaRed, size: 27),
+            Icon(Icons.school_rounded, color: sitaAccentFor(context), size: 27),
             SizedBox(width: 9),
             Text(
               'SITA',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.2,
-                color: sitaInk,
+                color: sitaInkFor(context),
               ),
             ),
           ],
         ),
         actions: [
+          const SitaThemeToggle(),
           IconButton(
             tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout_rounded),
@@ -185,22 +187,22 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
                   Container(
                     padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF5E7),
+                      color: sitaIsDark(context) ? const Color(0xFF44331F) : const Color(0xFFFFF5E7),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFF9D9A7)),
+                      border: Border.all(color: sitaIsDark(context) ? const Color(0xFF7B5D33) : const Color(0xFFF9D9A7)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.cloud_upload_outlined,
-                          color: Color(0xFFB66B0A),
+                          color: sitaIsDark(context) ? const Color(0xFFFFCF86) : const Color(0xFFB66B0A),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Tienes $_pendientesOffline registros pendientes de sincronizar.',
-                            style: const TextStyle(
-                              color: Color(0xFF8A530F),
+                            style: TextStyle(
+                              color: sitaIsDark(context) ? const Color(0xFFFFD39A) : const Color(0xFF8A530F),
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
                             ),
@@ -229,7 +231,7 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 13),
                     child: Material(
-                      color: Colors.white,
+                      color: sitaSurfaceFor(context),
                       borderRadius: BorderRadius.circular(20),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(20),
@@ -262,7 +264,7 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: const Color(0xFFE8ECF2),
+                              color: sitaBorderFor(context),
                             ),
                           ),
                           child: Row(
@@ -271,12 +273,12 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
                                 width: 56,
                                 height: 56,
                                 decoration: BoxDecoration(
-                                  color: sitaRed.withAlpha(19),
+                                  color: sitaAccentFor(context).withAlpha(19),
                                   borderRadius: BorderRadius.circular(17),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.auto_stories_outlined,
-                                  color: sitaRed,
+                                  color: sitaAccentFor(context),
                                   size: 29,
                                 ),
                               ),
@@ -289,8 +291,8 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
                                       materia['nombre'],
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: sitaInk,
+                                      style: TextStyle(
+                                        color: sitaInkFor(context),
                                         fontWeight: FontWeight.w800,
                                         fontSize: 16,
                                       ),
@@ -298,8 +300,8 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
                                     const SizedBox(height: 7),
                                     Text(
                                       "${curso['nombre']} · Gestión ${curso['gestion']}",
-                                      style: const TextStyle(
-                                        color: sitaMuted,
+                                      style: TextStyle(
+                                        color: sitaMutedFor(context),
                                         fontSize: 12.5,
                                       ),
                                     ),
@@ -311,12 +313,12 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
                                 width: 30,
                                 height: 30,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF7F0F0),
+                                  color: sitaIsDark(context) ? const Color(0xFF342B34) : const Color(0xFFF7F0F0),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.chevron_right_rounded,
-                                  color: sitaRed,
+                                  color: sitaAccentFor(context),
                                 ),
                               ),
                             ],

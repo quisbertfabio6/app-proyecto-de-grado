@@ -62,8 +62,8 @@ class _MisLicenciasScreenState extends State<MisLicenciasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: sitaInk,
+        backgroundColor: sitaSurfaceFor(context),
+        foregroundColor: sitaInkFor(context),
         title: const Text(
           'Mis trámites',
           style: TextStyle(fontWeight: FontWeight.w800),
@@ -111,9 +111,9 @@ class _MisLicenciasScreenState extends State<MisLicenciasScreen> {
                   margin: const EdgeInsets.only(bottom: 13),
                   padding: const EdgeInsets.all(17),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: sitaSurfaceFor(context),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE8ECF2)),
+                    border: Border.all(color: sitaBorderFor(context)),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF23334A).withAlpha(10),
@@ -131,7 +131,7 @@ class _MisLicenciasScreenState extends State<MisLicenciasScreen> {
                           Container(
                             padding: const EdgeInsets.all(9),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF5F6F9),
+                              color: sitaIsDark(context) ? const Color(0xFF28374A) : const Color(0xFFF5F6F9),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: _getIconoEstado(lic['estado']),
@@ -140,8 +140,8 @@ class _MisLicenciasScreenState extends State<MisLicenciasScreen> {
                           Expanded(
                             child: Text(
                               lic['motivo'] ?? 'Sin motivo',
-                              style: const TextStyle(
-                                color: sitaInk,
+                              style: TextStyle(
+                                color: sitaInkFor(context),
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
                               ),
@@ -155,17 +155,17 @@ class _MisLicenciasScreenState extends State<MisLicenciasScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.calendar_today_outlined,
                             size: 17,
-                            color: sitaMuted,
+                            color: sitaMutedFor(context),
                           ),
                           const SizedBox(width: 9),
                           Expanded(
                             child: Text(
                               "Fechas: ${lic['fecha_inicio']} al ${lic['fecha_fin']}",
-                              style: const TextStyle(
-                                color: sitaMuted,
+                              style: TextStyle(
+                                color: sitaMutedFor(context),
                                 fontSize: 12.5,
                               ),
                             ),
@@ -176,8 +176,8 @@ class _MisLicenciasScreenState extends State<MisLicenciasScreen> {
                         const SizedBox(height: 10),
                         Text(
                           "Obs: ${lic['comentario_admin']}",
-                          style: const TextStyle(
-                            color: Color(0xFFB42318),
+                          style: TextStyle(
+                            color: sitaIsDark(context) ? const Color(0xFFFF8A80) : const Color(0xFFB42318),
                             fontStyle: FontStyle.italic,
                             fontSize: 12.5,
                           ),
@@ -192,7 +192,7 @@ class _MisLicenciasScreenState extends State<MisLicenciasScreen> {
                             icon: const Icon(Icons.delete_outline_rounded),
                             label: const Text('Anular solicitud'),
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFFB42318),
+                              foregroundColor: sitaIsDark(context) ? const Color(0xFFFF8A80) : const Color(0xFFB42318),
                             ),
                           ),
                         ),

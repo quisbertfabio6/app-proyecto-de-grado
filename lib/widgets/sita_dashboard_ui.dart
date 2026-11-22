@@ -6,6 +6,29 @@ const sitaDarkRed = Color(0xFF961B1B);
 const sitaInk = Color(0xFF1F2937);
 const sitaMuted = Color(0xFF667085);
 
+bool sitaIsDark(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark;
+
+Color sitaSurfaceFor(BuildContext context) =>
+    sitaIsDark(context) ? const Color(0xFF1C2737) : Colors.white;
+
+Color sitaInkFor(BuildContext context) =>
+    sitaIsDark(context) ? const Color(0xFFE9EEF7) : sitaInk;
+
+Color sitaMutedFor(BuildContext context) =>
+    sitaIsDark(context) ? const Color(0xFFB7C5D8) : sitaMuted;
+
+Color sitaBorderFor(BuildContext context) =>
+    sitaIsDark(context) ? const Color(0xFF39485D) : const Color(0xFFE9EDF2);
+
+Color sitaAccentFor(BuildContext context) =>
+    sitaIsDark(context) ? const Color(0xFFFF8A80) : sitaRed;
+
+Color sitaTileAccentFor(BuildContext context, Color accent) {
+  if (!sitaIsDark(context)) return accent;
+  return accent == sitaRed ? const Color(0xFFFF8A80) : const Color(0xFF9AB8FF);
+}
+
 class SitaHeroBanner extends StatelessWidget {
   final String section;
   final String title;
@@ -187,8 +210,8 @@ class SitaSectionTitle extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: sitaInk,
+          style: TextStyle(
+            color: sitaInkFor(context),
             fontSize: 20,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.4,
@@ -197,8 +220,8 @@ class SitaSectionTitle extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           subtitle,
-          style: const TextStyle(
-            color: sitaMuted,
+          style: TextStyle(
+            color: sitaMutedFor(context),
             fontSize: 13,
           ),
         ),
@@ -226,7 +249,7 @@ class SitaActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: sitaSurfaceFor(context),
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
@@ -235,7 +258,7 @@ class SitaActionTile extends StatelessWidget {
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE9EDF2)),
+            border: Border.all(color: sitaBorderFor(context)),
           ),
           child: Row(
             children: [
@@ -243,10 +266,10 @@ class SitaActionTile extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: accent.withAlpha(20),
+                  color: sitaTileAccentFor(context, accent).withAlpha(20),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: accent, size: 25),
+                child: Icon(icon, color: sitaTileAccentFor(context, accent), size: 25),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -255,8 +278,8 @@ class SitaActionTile extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: sitaInk,
+                      style: TextStyle(
+                        color: sitaInkFor(context),
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                       ),
@@ -264,15 +287,15 @@ class SitaActionTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: sitaMuted,
+                      style: TextStyle(
+                        color: sitaMutedFor(context),
                         fontSize: 11.5,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios_rounded, size: 15, color: accent),
+              Icon(Icons.arrow_forward_ios_rounded, size: 15, color: sitaTileAccentFor(context, accent)),
             ],
           ),
         ),
@@ -299,23 +322,23 @@ class SitaEmptyPanel extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: sitaSurfaceFor(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE9EDF2)),
+        border: Border.all(color: sitaBorderFor(context)),
       ),
       child: Column(
         children: [
           CircleAvatar(
             radius: 34,
             backgroundColor: sitaRed.withAlpha(18),
-            child: Icon(icon, size: 33, color: sitaRed),
+            child: Icon(icon, size: 33, color: sitaAccentFor(context)),
           ),
           const SizedBox(height: 16),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: sitaInk,
+            style: TextStyle(
+              color: sitaInkFor(context),
               fontSize: 16,
               fontWeight: FontWeight.w800,
             ),
@@ -324,7 +347,7 @@ class SitaEmptyPanel extends StatelessWidget {
           Text(
             description,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: sitaMuted, fontSize: 13),
+            style: TextStyle(color: sitaMutedFor(context), fontSize: 13),
           ),
         ],
       ),
