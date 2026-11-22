@@ -131,10 +131,14 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mis Clases'),
-        backgroundColor: Colors.indigo,
+        backgroundColor: const Color(0xFFD32F2F),
         foregroundColor: Colors.white,
         actions: [
-          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
+          IconButton(
+            tooltip: 'Cerrar sesión',
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+          ),
         ],
       ),
 
@@ -152,21 +156,33 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _materias.isEmpty
-          ? const Center(child: Text('No tienes materias asignadas'))
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.menu_book_outlined, size: 54, color: Colors.grey),
+                    SizedBox(height: 12),
+                    Text('No tienes materias asignadas', textAlign: TextAlign.center),
+                  ],
+                ),
+              ),
+            )
           : ListView.builder(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(16),
               itemCount: _materias.length,
               itemBuilder: (context, index) {
                 final materia = _materias[index];
                 final curso = materia['curso'];
 
                 return Card(
-                  elevation: 3,
-                  margin: const EdgeInsets.only(bottom: 15),
+                  elevation: 1,
+                  margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.all(15),
+                    contentPadding: const EdgeInsets.all(16),
                     leading: const CircleAvatar(
-                      backgroundColor: Colors.indigo,
+                      backgroundColor: const Color(0xFFD32F2F),
                       child: Icon(Icons.book, color: Colors.white),
                     ),
                     title: Text(
