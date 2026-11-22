@@ -78,8 +78,8 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Control de Asistencia'), 
-        backgroundColor: Colors.indigo, 
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         elevation: 0,
       ),
       body: Column(
@@ -87,7 +87,7 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
           // --- BARRA DE FECHAS (CARRUSEL) ---
           Container(
             height: 60,
-            color: Colors.indigo,
+            color: Theme.of(context).colorScheme.primary,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -103,13 +103,13 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
                     label: Text(
                       esHoy ? "HOY ($fecha)" : fecha,
                       style: TextStyle(
-                        color: esSeleccionada ? Colors.indigo : Colors.white,
+                        color: esSeleccionada ? Theme.of(context).colorScheme.onSurface : Colors.white,
                         fontWeight: FontWeight.bold
                       ),
                     ),
                     selected: esSeleccionada,
-                    selectedColor: Colors.white,
-                    backgroundColor: Colors.indigo.shade700,
+                    selectedColor: Theme.of(context).colorScheme.surface,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     onSelected: (bool selected) {
                       if (selected) {
                         setState(() => _fechaSeleccionada = fecha);
@@ -126,11 +126,11 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(10),
-            color: Colors.grey.shade200,
+            color: Theme.of(context).colorScheme.surface,
             child: Text(
               "Mostrando asistencia del: $_fechaSeleccionada",
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -176,8 +176,8 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
     if (estadoHoy == 'licencia') {
        return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(color: Colors.blue.shade100, borderRadius: BorderRadius.circular(15)),
-        child: const Text("Licencia", style: TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold)),
+        decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1C3D59) : Colors.blue.shade100, borderRadius: BorderRadius.circular(15)),
+        child: Text("Licencia", style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF9ACDFF) : Colors.blue, fontSize: 12, fontWeight: FontWeight.bold)),
       );
     }
     return Row(
@@ -193,7 +193,7 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
   Widget _boton(String? actual, String target, IconData icon, Color color, int id) {
     return IconButton(
       icon: Icon(icon),
-      color: actual == target ? color : Colors.grey.shade300,
+      color: actual == target ? color : Theme.of(context).colorScheme.outline,
       iconSize: actual == target ? 30 : 24,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
