@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../widgets/sita_dashboard_ui.dart';
 
 class MisLicenciasScreen extends StatefulWidget {
   const MisLicenciasScreen({super.key});
@@ -61,50 +62,146 @@ class _MisLicenciasScreenState extends State<MisLicenciasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Trámites'),
-        backgroundColor: const Color(0xFFD32F2F),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: sitaInk,
+        title: const Text(
+          'Mis trámites',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _licencias.isEmpty
-              ? const Center(child: Text('No tienes solicitudes enviadas'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(10),
-                  itemCount: _licencias.length,
-                  itemBuilder: (context, index) {
-                    final lic = _licencias[index];
-                    final esPendiente = lic['estado'] == 'pendiente';
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: ListTile(
-                        leading: _getIconoEstado(lic['estado']),
-                        title: Text(lic['motivo'] ?? 'Sin motivo', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text("Fechas: ${lic['fecha_inicio']} al ${lic['fecha_fin']}"),
-                            if (lic['comentario_admin'] != null)
-                              Text(
-                                "Obs: ${lic['comentario_admin']}",
-                                style: const TextStyle(color: Colors.red, fontStyle: FontStyle.italic),
-                              ),
-                          ],
-                        ),
-                        // SI ES PENDIENTE: Botón de Borrar. SI NO: Chip de Estado.
-                        trailing: esPendiente
-                            ? IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                tooltip: 'Anular Solicitud',
-                                onPressed: () => _anularSolicitud(lic['id']),
-                              )
-                            : _getTagEstado(lic['estado']),
+          : ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
+              itemCount: _licencias.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SitaHeroBanner(
+                        section: 'LICENCIAS',
+                        title: 'Mis solicitudes',
+                        description:
+                            'Consulta el estado de los trámites que enviaste.',
+                        counterLabel: '${_licencias.length} solicitudes',
+                        icon: Icons.assignment_turned_in_outlined,
                       ),
-                    );
-                  },
-                ),
+                      const SizedBox(height: 27),
+                      const SitaSectionTitle(
+                        title: 'Historial',
+                        subtitle: 'Revisa las fechas y el estado de tus licencias.',
+                      ),
+                      const SizedBox(height: 15),
+                      if (_licencias.isEmpty)
+                        const SitaEmptyPanel(
+                          icon: Icons.inbox_outlined,
+                          title: 'Todavía no tienes solicitudes',
+                          description:
+                              'Cuando envíes una licencia, aparecerá aquí.',
+                        ),
+                    ],
+                  );
+                }
+
+                final lic = _licencias[index - 1];
+                final esPendiente = lic['estado'] == 'pendiente';
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 13),
+                  padding: const EdgeInsets.all(17),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFE8ECF2)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF23334A).withAlpha(10),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(9),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F6F9),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: _getIconoEstado(lic['estado']),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              lic['motivo'] ?? 'Sin motivo',
+                              style: const TextStyle(
+                                color: sitaInk,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                      _getTagEstado(lic['estado']),
+                      const SizedBox(height: 14),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 17,
+                            color: sitaMuted,
+                          ),
+                          const SizedBox(width: 9),
+                          Expanded(
+                            child: Text(
+                              "Fechas: ${lic['fecha_inicio']} al ${lic['fecha_fin']}",
+                              style: const TextStyle(
+                                color: sitaMuted,
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (lic['comentario_admin'] != null) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          "Obs: ${lic['comentario_admin']}",
+                          style: const TextStyle(
+                            color: Color(0xFFB42318),
+                            fontStyle: FontStyle.italic,
+                            fontSize: 12.5,
+                          ),
+                        ),
+                      ],
+                      if (esPendiente) ...[
+                        const Divider(height: 25),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: () => _anularSolicitud(lic['id']),
+                            icon: const Icon(Icons.delete_outline_rounded),
+                            label: const Text('Anular solicitud'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFFB42318),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 
