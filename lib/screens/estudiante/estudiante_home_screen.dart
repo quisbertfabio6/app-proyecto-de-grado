@@ -4,6 +4,7 @@ import '../login_screen.dart';
 import 'licencia_form_screen.dart';
 import 'mis_licencias_screen.dart';
 import '../../widgets/sita_dashboard_ui.dart';
+import '../../theme/sita_theme.dart';
 
 class EstudianteHomeScreen extends StatefulWidget {
   const EstudianteHomeScreen({super.key});
@@ -44,24 +45,25 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: sitaInk,
-        title: const Row(
+        backgroundColor: sitaSurfaceFor(context),
+        foregroundColor: sitaInkFor(context),
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.school_rounded, color: sitaRed, size: 27),
+            Icon(Icons.school_rounded, color: sitaAccentFor(context), size: 27),
             SizedBox(width: 9),
             Text(
               'SITA',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.2,
-                color: sitaInk,
+                color: sitaInkFor(context),
               ),
             ),
           ],
         ),
         actions: [
+          const SitaThemeToggle(),
           IconButton(
             tooltip: 'Actualizar materias',
             icon: const Icon(Icons.refresh_rounded),
@@ -158,19 +160,19 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
                   final porcentaje = materia['porcentaje'];
                   final esRiesgo = materia['riesgo'];
                   final colorEstado = esRiesgo
-                      ? const Color(0xFFB42318)
-                      : const Color(0xFF15803D);
+                      ? (sitaIsDark(context) ? const Color(0xFFFF8A80) : const Color(0xFFB42318))
+                      : (sitaIsDark(context) ? const Color(0xFF7BDBAC) : const Color(0xFF15803D));
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 13),
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: sitaSurfaceFor(context),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: esRiesgo
-                            ? const Color(0xFFF3C2BE)
-                            : const Color(0xFFE8ECF2),
+                            ? (sitaIsDark(context) ? const Color(0xFF80545B) : const Color(0xFFF3C2BE))
+                            : sitaBorderFor(context),
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -189,12 +191,12 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: sitaRed.withAlpha(18),
+                                color: sitaAccentFor(context).withAlpha(18),
                                 borderRadius: BorderRadius.circular(13),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.auto_stories_outlined,
-                                color: sitaRed,
+                                color: sitaAccentFor(context),
                                 size: 23,
                               ),
                             ),
@@ -204,8 +206,8 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
                                 materia['nombre'],
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: sitaInk,
+                                style: TextStyle(
+                                  color: sitaInkFor(context),
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -235,10 +237,10 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
                         const SizedBox(height: 21),
                         Row(
                           children: [
-                            const Text(
+                            Text(
                               'Asistencia',
                               style: TextStyle(
-                                color: sitaInk,
+                                color: sitaInkFor(context),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -248,8 +250,8 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
                               child: Text(
                                 "${materia['asistencias_puntos']} de ${materia['total_clases']} clases",
                                 textAlign: TextAlign.end,
-                                style: const TextStyle(
-                                  color: sitaMuted,
+                                style: TextStyle(
+                                  color: sitaMutedFor(context),
                                   fontSize: 12,
                                 ),
                               ),
@@ -262,7 +264,7 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
                           child: LinearProgressIndicator(
                             value: porcentaje / 100,
                             minHeight: 10,
-                            backgroundColor: const Color(0xFFEDF0F5),
+                            backgroundColor: sitaIsDark(context) ? const Color(0xFF344357) : const Color(0xFFEDF0F5),
                             color: colorEstado,
                           ),
                         ),
