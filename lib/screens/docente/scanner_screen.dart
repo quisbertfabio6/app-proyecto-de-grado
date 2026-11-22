@@ -107,8 +107,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Escanear: ${widget.nombreMateria}'),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         actions: [
           // Botón de Flash SIMPLIFICADO (Sin listener complejo)
           IconButton(
@@ -138,18 +138,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
             flex: 1,
             child: Container(
               width: double.infinity,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     "Apunta al código QR de la tarjeta",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   SizedBox(height: 5),
                   Text(
                     "Mantén el celular estable",
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
