@@ -22,6 +22,91 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
   String? _tipoArchivo; // 'imagen' o 'pdf'
   bool _isLoading = false;
 
+  bool _cargandoDatos = true;
+  String? _errorDatos;
+  List<dynamic> _categorias = [];
+  Map<String, dynamic>? _cupo;
+  int? _categoriaId;
+  int? _subcategoriaId;
+
+  bool get _puedeSolicitar =>
+      !_cargandoDatos &&
+      _errorDatos == null &&
+      _cupo?['puede_solicitar'] == true;
+
+  List<dynamic> get _subcategoriasDisponibles {
+    for (final categoria in _categorias) {
+      if (categoria is Map && categoria['id'] == _categoriaId) {
+        final subcategorias = categoria['subcategorias'];
+        return subcategorias is List ? subcategorias : [];
+      }
+    }
+    return [];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatos();
+  }
+
+  Future<void> _cargarDatos() async {
+    setState(() {
+      _cargandoDatos = true;
+      _errorDatos = null;
+      _cupo = null;
+    });
+
+    final resultados = await Future.wait([
+      ApiService.getCategoriasLicencia(),
+      ApiService.getCupoLicencias(),
+    ]);
+
+    if (!mounted) return;
+    final categorias = resultados[0];
+    final cupo = resultados[1];
+
+    if (categorias['success'] == true &&
+        categorias['data'] is List &&
+        cupo['success'] == true &&
+        cupo['data'] is Map) {
+      setState(() {
+        _categorias = categorias['data'] as List<dynamic>;
+        _cupo = Map<String, dynamic>.from(cupo['data'] as Map);
+        if (!_categorias.any((categoria) => categoria['id'] == _categoriaId)) {
+          _categoriaId = null;
+          _subcategoriaId = null;
+        } else if (!_subcategoriasDisponibles.any(
+          (subcategoria) => subcategoria['id'] == _subcategoriaId,
+        )) {
+          _subcategoriaId = null;
+        }
+        _cargandoDatos = false;
+      });
+    } else {
+      setState(() {
+        _cupo = null;
+        _categorias = [];
+        _categoriaId = null;
+        _subcategoriaId = null;
+        _errorDatos = categorias['success'] != true
+            ? (categorias['message']?.toString() ??
+                'No se pudo cargar el catálogo de categorías.')
+            : (cupo['message']?.toString() ??
+                'No se pudo consultar el cupo semestral.');
+        _cargandoDatos = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _motivoController.dispose();
+    _fechaInicioController.dispose();
+    _fechaFinController.dispose();
+    super.dispose();
+  }
+
   // --- NUEVA FUNCIÓN: Compresión de imagen ---
   Future<File?> _comprimirImagen(File file) async {
     final filePath = file.absolute.path;
@@ -133,13 +218,21 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
     );
   }
 
-  // Enviar al servidor
-  void _enviar() async {
-    if (_motivoController.text.isEmpty ||
+  // Enviar al servidor: Laravel vuelve a validar el cupo.
+  Future<void> _enviar() async {
+    if (!_puedeSolicitar) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hay cupos disponibles o no se pudo consultar el límite.')),
+      );
+      return;
+    }
+
+    if (_categoriaId == null ||
+        _subcategoriaId == null ||
         _fechaInicioController.text.isEmpty ||
         _fechaFinController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Llene los campos obligatorios')),
+        const SnackBar(content: Text('Selecciona categoría, subcategoría y fechas.')),
       );
       return;
     }
@@ -147,17 +240,18 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
     setState(() => _isLoading = true);
 
     final result = await ApiService.enviarLicencia(
-      motivo: _motivoController.text,
+      motivo: _motivoController.text.trim(),
       fechaInicio: _fechaInicioController.text,
       fechaFin: _fechaFinController.text,
       archivo: _archivoAdjunto,
+      categoriaId: _categoriaId,
+      subcategoriaId: _subcategoriaId,
     );
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (!mounted) return;
-
-    if (result['success']) {
+    if (result['success'] == true) {
       SoundManager.playScan();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -168,8 +262,14 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(result['message']?.toString() ?? 'No se pudo enviar.'),
+          backgroundColor: Colors.red,
+        ),
       );
+      if (result['status'] == 409) {
+        await _cargarDatos();
+      }
     }
   }
 
@@ -236,17 +336,137 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_cargandoDatos)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 18),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            if (_errorDatos != null) ...[
+              Text(
+                _errorDatos!,
+                style: const TextStyle(color: Colors.red),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _cargarDatos,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+              ),
+              const SizedBox(height: 18),
+            ],
+            if (_cupo != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: _puedeSolicitar ? Colors.blue.shade50 : Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _puedeSolicitar ? Colors.blue.shade200 : Colors.red.shade200,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Máximo 3 licencias por semestre',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'Semestre ${_cupo!['semestre']} de ${_cupo!['anio']} '
+                      '(${_cupo!['fecha_inicio']} al ${_cupo!['fecha_fin']})',
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Utilizadas: ${_cupo!['utilizadas']} de ${_cupo!['maximo']}. '
+                      'Disponibles: ${_cupo!['disponibles']}.',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    if (!_puedeSolicitar) ...[
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Has alcanzado el límite de 3 licencias por semestre. '
+                        'No puedes enviar otra solicitud hasta que se libere un cupo '
+                        'o comience el siguiente semestre.',
+                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
             const Text(
-              'Motivo:',
+              'Categoría:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 6),
+            DropdownButtonFormField<int>(
+              key: ValueKey('categoria-$_categoriaId'),
+              value: _categoriaId,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Selecciona una categoría',
+              ),
+              items: _categorias.map<DropdownMenuItem<int>>((categoria) {
+                return DropdownMenuItem<int>(
+                  value: categoria['id'] as int,
+                  child: Text(
+                    categoria['nombre']?.toString() ?? '',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+              onChanged: _puedeSolicitar && !_isLoading
+                  ? (valor) => setState(() {
+                        _categoriaId = valor;
+                        _subcategoriaId = null;
+                      })
+                  : null,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Motivo específico:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            DropdownButtonFormField<int>(
+              key: ValueKey('subcategoria-$_categoriaId-$_subcategoriaId'),
+              value: _subcategoriaId,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Selecciona el motivo',
+              ),
+              items: _subcategoriasDisponibles.map<DropdownMenuItem<int>>((subcategoria) {
+                return DropdownMenuItem<int>(
+                  value: subcategoria['id'] as int,
+                  child: Text(
+                    subcategoria['nombre']?.toString() ?? '',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+              onChanged: _puedeSolicitar && !_isLoading && _categoriaId != null
+                  ? (valor) => setState(() => _subcategoriaId = valor)
+                  : null,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Detalle adicional (opcional):',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
             TextField(
               controller: _motivoController,
               maxLines: 3,
+              maxLength: 500,
+              enabled: _puedeSolicitar && !_isLoading,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: 'Ej: Baja médica...',
+                hintText: 'Explica tu situación si necesitas añadir información...',
               ),
             ),
 
@@ -257,6 +477,7 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
                   child: TextField(
                     controller: _fechaInicioController,
                     readOnly: true,
+                    enabled: _puedeSolicitar && !_isLoading,
                     decoration: const InputDecoration(
                       labelText: 'Desde',
                       prefixIcon: Icon(Icons.calendar_today),
@@ -270,6 +491,7 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
                   child: TextField(
                     controller: _fechaFinController,
                     readOnly: true,
+                    enabled: _puedeSolicitar && !_isLoading,
                     decoration: const InputDecoration(
                       labelText: 'Hasta',
                       prefixIcon: Icon(Icons.calendar_today),
@@ -290,7 +512,7 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
 
             // Área de Vista Previa
             GestureDetector(
-              onTap: _seleccionarArchivo,
+              onTap: _puedeSolicitar && !_isLoading ? _seleccionarArchivo : null,
               child: Container(
                 height: 160,
                 width: double.infinity,
@@ -311,7 +533,7 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _enviar,
+                onPressed: _puedeSolicitar && !_isLoading ? _enviar : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFD32F2F),
                   foregroundColor: Colors.white,
