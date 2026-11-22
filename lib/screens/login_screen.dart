@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../theme/sita_theme.dart';
 import 'docente/docente_home_screen.dart';
 import 'estudiante/estudiante_home_screen.dart';
 
@@ -81,7 +82,11 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        actions: const [SitaThemeToggle(showLabel: true)],
+      ),
       body: Center(
         // SingleChildScrollView evita el error de "overflow" (líneas amarillas)
         child: SingleChildScrollView(
@@ -105,9 +110,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Color(0xFFD32F2F),
                   ),
                 ),
-                const Text(
+                Text(
                   'Instituto Tecnológico Ayacucho',
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 40),
 
