@@ -47,52 +47,88 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
         backgroundColor: const Color(0xFFD32F2F),
         foregroundColor: Colors.white,
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _cargarDatos),
-          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
+          IconButton(
+            tooltip: 'Actualizar materias',
+            icon: const Icon(Icons.refresh),
+            onPressed: _cargarDatos,
+          ),
+          IconButton(
+            tooltip: 'Cerrar sesión',
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+          ),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // --- SECCIÓN DE BOTONES RÁPIDOS ---
+                // Acciones principales: en celulares estrechos se apilan
+                // para evitar que el texto de los botones se corte.
                 Container(
-                  padding: const EdgeInsets.all(15),
-                  color: Colors.grey.shade100,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                             Navigator.push(context, MaterialPageRoute(builder: (_) => const LicenciaFormScreen()));
-                          },
-                          icon: const Icon(Icons.add_a_photo, size: 18),
-                          label: const Text("PEDIR LICENCIA"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFD32F2F), 
-                            foregroundColor: Colors.white
+                  padding: const EdgeInsets.all(16),
+                  color: Colors.white,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final anchoDisponible = constraints.maxWidth;
+                      final unaColumna = anchoDisponible < 440;
+                      final anchoBoton = unaColumna
+                          ? anchoDisponible
+                          : (anchoDisponible - 10) / 2;
+
+                      return Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          SizedBox(
+                            width: anchoBoton,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const LicenciaFormScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.note_add_outlined, size: 18),
+                              label: const Text('PEDIR LICENCIA'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFD32F2F),
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size(0, 48),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                             Navigator.push(context, MaterialPageRoute(builder: (_) => const MisLicenciasScreen()));
-                          },
-                          icon: const Icon(Icons.history, size: 18),
-                          label: const Text("TRÁMITES"),
-                          style: OutlinedButton.styleFrom(foregroundColor: Colors.black87),
-                        ),
-                      ),
-                    ],
+                          SizedBox(
+                            width: anchoBoton,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const MisLicenciasScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.history, size: 18),
+                              label: const Text('TRÁMITES'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFFD32F2F),
+                                minimumSize: const Size(0, 48),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
 
-                // --- LISTA DE MATERIAS ---
+                                // --- LISTA DE MATERIAS ---
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(15),
+                    padding: const EdgeInsets.all(16),
                     itemCount: _materias.length,
                     itemBuilder: (context, index) {
                       final materia = _materias[index];
@@ -100,14 +136,14 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
                       final esRiesgo = materia['riesgo']; // true/false
                       
                       return Card(
-                        elevation: 3,
-                        margin: const EdgeInsets.only(bottom: 15),
+                        elevation: 1,
+                        margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(
                           side: esRiesgo ? const BorderSide(color: Colors.red, width: 2) : BorderSide.none,
-                          borderRadius: BorderRadius.circular(10)
+                          borderRadius: BorderRadius.circular(16)
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(15.0),
+                          padding: const EdgeInsets.all(16.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
