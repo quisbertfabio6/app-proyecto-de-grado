@@ -275,15 +275,18 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
 
   // Widget para mostrar la vista previa según el tipo
   Widget _buildVistaPrevia() {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
+    final colorSecundario = Theme.of(context).colorScheme.onSurfaceVariant;
+
     if (_archivoAdjunto == null) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.cloud_upload, size: 40, color: Colors.grey),
-          SizedBox(height: 10),
+        children: [
+          Icon(Icons.cloud_upload, size: 40, color: colorSecundario),
+          const SizedBox(height: 10),
           Text(
             'Tocar para adjuntar Foto o PDF',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: colorSecundario),
           ),
         ],
       );
@@ -304,9 +307,12 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          const Text(
+          Text(
             "(Documento PDF listo)",
-            style: TextStyle(fontSize: 12, color: Colors.green),
+            style: TextStyle(
+              fontSize: 12,
+              color: esOscuro ? const Color(0xFF86EFAC) : Colors.green.shade700,
+            ),
           ),
         ],
       );
@@ -325,6 +331,17 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
+    final fondoCupo = _puedeSolicitar
+        ? (esOscuro ? const Color(0xFF20384E) : Colors.blue.shade50)
+        : (esOscuro ? const Color(0xFF432932) : Colors.red.shade50);
+    final bordeCupo = _puedeSolicitar
+        ? (esOscuro ? const Color(0xFF5486AD) : Colors.blue.shade200)
+        : (esOscuro ? const Color(0xFFB65A66) : Colors.red.shade200);
+    final textoCupo = _puedeSolicitar
+        ? (esOscuro ? const Color(0xFFEAF5FF) : const Color(0xFF183B56))
+        : (esOscuro ? const Color(0xFFFFE8EB) : const Color(0xFF69232C));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nueva Licencia'),
@@ -359,37 +376,50 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: _puedeSolicitar ? Colors.blue.shade50 : Colors.red.shade50,
+                  color: fondoCupo,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: _puedeSolicitar ? Colors.blue.shade200 : Colors.red.shade200,
+                    color: bordeCupo,
                   ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Máximo 3 licencias por semestre',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        color: textoCupo,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 5),
                     Text(
                       'Semestre ${_cupo!['semestre']} de ${_cupo!['anio']} '
                       '(${_cupo!['fecha_inicio']} al ${_cupo!['fecha_fin']})',
+                      style: TextStyle(color: textoCupo),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Utilizadas: ${_cupo!['utilizadas']} de ${_cupo!['maximo']}. '
                       'Disponibles: ${_cupo!['disponibles']}.',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: textoCupo,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     if (!_puedeSolicitar) ...[
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Has alcanzado el límite de 3 licencias por semestre. '
                         'No puedes enviar otra solicitud hasta que se libere un cupo '
                         'o comience el siguiente semestre.',
-                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: esOscuro
+                              ? const Color(0xFFFFB6BF)
+                              : const Color(0xFFB42318),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ],
@@ -517,9 +547,13 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
                 height: 160,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: esOscuro
+                      ? const Color(0xFF1C2737)
+                      : Colors.grey[100],
                   border: Border.all(
-                    color: Colors.grey.shade400,
+                    color: esOscuro
+                        ? const Color(0xFF53667F)
+                        : Colors.grey.shade400,
                     style: BorderStyle.solid,
                   ),
                   borderRadius: BorderRadius.circular(10),
