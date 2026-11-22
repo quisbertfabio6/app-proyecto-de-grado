@@ -278,8 +278,8 @@ class SitaActionTile extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: sitaInk,
+                      style: TextStyle(
+                        color: sitaInkFor(context),
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                       ),
@@ -287,8 +287,8 @@ class SitaActionTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: sitaMuted,
+                      style: TextStyle(
+                        color: sitaMutedFor(context),
                         fontSize: 11.5,
                       ),
                     ),
@@ -337,8 +337,8 @@ class SitaEmptyPanel extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: sitaInk,
+            style: TextStyle(
+              color: sitaInkFor(context),
               fontSize: 16,
               fontWeight: FontWeight.w800,
             ),
