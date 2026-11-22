@@ -72,10 +72,22 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
       setState(() {
         _categorias = categorias['data'] as List<dynamic>;
         _cupo = Map<String, dynamic>.from(cupo['data'] as Map);
+        if (!_categorias.any((categoria) => categoria['id'] == _categoriaId)) {
+          _categoriaId = null;
+          _subcategoriaId = null;
+        } else if (!_subcategoriasDisponibles.any(
+          (subcategoria) => subcategoria['id'] == _subcategoriaId,
+        )) {
+          _subcategoriaId = null;
+        }
         _cargandoDatos = false;
       });
     } else {
       setState(() {
+        _cupo = null;
+        _categorias = [];
+        _categoriaId = null;
+        _subcategoriaId = null;
         _errorDatos = categorias['success'] != true
             ? (categorias['message']?.toString() ??
                 'No se pudo cargar el catálogo de categorías.')
