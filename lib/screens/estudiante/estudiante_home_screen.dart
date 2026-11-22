@@ -3,6 +3,7 @@ import '../../services/api_service.dart';
 import '../login_screen.dart';
 import 'licencia_form_screen.dart';
 import 'mis_licencias_screen.dart';
+import '../../widgets/sita_dashboard_ui.dart';
 
 class EstudianteHomeScreen extends StatefulWidget {
   const EstudianteHomeScreen({super.key});
@@ -43,161 +44,257 @@ class _EstudianteHomeScreenState extends State<EstudianteHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi Rendimiento'),
-        backgroundColor: const Color(0xFFD32F2F),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: sitaInk,
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.school_rounded, color: sitaRed, size: 27),
+            SizedBox(width: 9),
+            Text(
+              'SITA',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+                color: sitaInk,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: 'Actualizar materias',
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
             onPressed: _cargarDatos,
           ),
           IconButton(
             tooltip: 'Cerrar sesión',
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_rounded),
             onPressed: _logout,
           ),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
               children: [
-                // Acciones principales: en celulares estrechos se apilan
-                // para evitar que el texto de los botones se corte.
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.white,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final anchoDisponible = constraints.maxWidth;
-                      final unaColumna = anchoDisponible < 440;
-                      final anchoBoton = unaColumna
-                          ? anchoDisponible
-                          : (anchoDisponible - 10) / 2;
-
-                      return Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: [
-                          SizedBox(
-                            width: anchoBoton,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const LicenciaFormScreen(),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.note_add_outlined, size: 18),
-                              label: const Text('PEDIR LICENCIA'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFD32F2F),
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size(0, 48),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: anchoBoton,
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const MisLicenciasScreen(),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.history, size: 18),
-                              label: const Text('TRÁMITES'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: const Color(0xFFD32F2F),
-                                minimumSize: const Size(0, 48),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                SitaHeroBanner(
+                  section: 'ESTUDIANTE',
+                  title: 'Mi rendimiento\nacadémico',
+                  description:
+                      'Consulta tus asistencias y gestiona tus solicitudes en un solo lugar.',
+                  counterLabel: '${_materias.length} materias registradas',
+                  icon: Icons.school_outlined,
                 ),
+                const SizedBox(height: 27),
+                const SitaSectionTitle(
+                  title: 'Accesos rápidos',
+                  subtitle: 'Tus gestiones más importantes, a un toque.',
+                ),
+                const SizedBox(height: 14),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final unaColumna = constraints.maxWidth < 600;
+                    final ancho = unaColumna
+                        ? constraints.maxWidth
+                        : (constraints.maxWidth - 12) / 2;
 
-                                // --- LISTA DE MATERIAS ---
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _materias.length,
-                    itemBuilder: (context, index) {
-                      final materia = _materias[index];
-                      final porcentaje = materia['porcentaje']; // 0 a 100
-                      final esRiesgo = materia['riesgo']; // true/false
-                      
-                      return Card(
-                        elevation: 1,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          side: esRiesgo ? const BorderSide(color: Colors.red, width: 2) : BorderSide.none,
-                          borderRadius: BorderRadius.circular(16)
+                    return Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        SizedBox(
+                          width: ancho,
+                          child: SitaActionTile(
+                            icon: Icons.note_add_outlined,
+                            title: 'Pedir licencia',
+                            subtitle: 'Nueva solicitud',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const LicenciaFormScreen(),
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Título y Porcentaje
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      materia['nombre'],
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: esRiesgo ? Colors.red : Colors.green,
-                                      borderRadius: BorderRadius.circular(8)
-                                    ),
-                                    child: Text(
-                                      "$porcentaje%",
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                    ),
-                                  )
-                                ],
+                        SizedBox(
+                          width: ancho,
+                          child: SitaActionTile(
+                            icon: Icons.assignment_outlined,
+                            title: 'Mis trámites',
+                            subtitle: 'Ver solicitudes',
+                            accent: const Color(0xFF344E86),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const MisLicenciasScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 29),
+                const SitaSectionTitle(
+                  title: 'Mis materias',
+                  subtitle: 'Seguimiento de asistencia por asignatura.',
+                ),
+                const SizedBox(height: 15),
+                if (_materias.isEmpty)
+                  const SitaEmptyPanel(
+                    icon: Icons.menu_book_outlined,
+                    title: 'Todavía no hay materias',
+                    description:
+                        'Tus asignaturas aparecerán aquí cuando estén disponibles.',
+                  ),
+                ..._materias.map((materia) {
+                  final porcentaje = materia['porcentaje'];
+                  final esRiesgo = materia['riesgo'];
+                  final colorEstado = esRiesgo
+                      ? const Color(0xFFB42318)
+                      : const Color(0xFF15803D);
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 13),
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: esRiesgo
+                            ? const Color(0xFFF3C2BE)
+                            : const Color(0xFFE8ECF2),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF23334A).withAlpha(10),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: sitaRed.withAlpha(18),
+                                borderRadius: BorderRadius.circular(13),
                               ),
-                              const SizedBox(height: 10),
-                              
-                              // Barra de Progreso
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(5),
-                                child: LinearProgressIndicator(
-                                  value: porcentaje / 100, 
-                                  minHeight: 10,
-                                  backgroundColor: Colors.grey.shade300,
-                                  color: esRiesgo ? Colors.red : Colors.green,
+                              child: const Icon(
+                                Icons.auto_stories_outlined,
+                                color: sitaRed,
+                                size: 23,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                materia['nombre'],
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: sitaInk,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              
-                              const SizedBox(height: 5),
-                              
-                              // Detalles Texto (SIN "REPROBADO")
-                              Text(
-                                "Clases asistidas: ${materia['asistencias_puntos']} de ${materia['total_clases']}",
-                                style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 7,
                               ),
-                            ],
+                              decoration: BoxDecoration(
+                                color: colorEstado.withAlpha(20),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '$porcentaje%',
+                                style: TextStyle(
+                                  color: colorEstado,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 21),
+                        Row(
+                          children: [
+                            const Text(
+                              'Asistencia',
+                              style: TextStyle(
+                                color: sitaInk,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const Spacer(),
+                            Flexible(
+                              child: Text(
+                                "${materia['asistencias_puntos']} de ${materia['total_clases']} clases",
+                                textAlign: TextAlign.end,
+                                style: const TextStyle(
+                                  color: sitaMuted,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: porcentaje / 100,
+                            minHeight: 10,
+                            backgroundColor: const Color(0xFFEDF0F5),
+                            color: colorEstado,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(
+                              esRiesgo
+                                  ? Icons.info_outline_rounded
+                                  : Icons.check_circle_outline_rounded,
+                              size: 16,
+                              color: colorEstado,
+                            ),
+                            const SizedBox(width: 7),
+                            Expanded(
+                              child: Text(
+                                esRiesgo
+                                    ? 'Asistencia en riesgo'
+                                    : 'Seguimiento de asistencia',
+                                style: TextStyle(
+                                  color: colorEstado,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }),
               ],
             ),
     );
