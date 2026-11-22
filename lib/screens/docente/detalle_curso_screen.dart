@@ -19,8 +19,8 @@ class DetalleCursoScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Opciones de Clase'),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -31,21 +31,21 @@ class DetalleCursoScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.indigo.shade50,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.indigo.shade100),
+                border: Border.all(color: Theme.of(context).dividerColor),
               ),
               child: Column(
                 children: [
                   Text(
                     nombreMateria,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.indigo),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 5),
                   Text(
                     nombreCurso,
-                    style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
