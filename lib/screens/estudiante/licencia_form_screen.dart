@@ -54,6 +54,7 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
     setState(() {
       _cargandoDatos = true;
       _errorDatos = null;
+      _cupo = null;
     });
 
     final resultados = await Future.wait([
@@ -402,6 +403,7 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
             ),
             const SizedBox(height: 6),
             DropdownButtonFormField<int>(
+              key: ValueKey('categoria-$_categoriaId'),
               value: _categoriaId,
               isExpanded: true,
               decoration: const InputDecoration(
@@ -431,6 +433,7 @@ class _LicenciaFormScreenState extends State<LicenciaFormScreen> {
             ),
             const SizedBox(height: 6),
             DropdownButtonFormField<int>(
+              key: ValueKey('subcategoria-$_categoriaId-$_subcategoriaId'),
               value: _subcategoriaId,
               isExpanded: true,
               decoration: const InputDecoration(
