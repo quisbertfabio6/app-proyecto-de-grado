@@ -6,6 +6,7 @@ import '../../utils/database_helper.dart';
 import '../login_screen.dart';
 import 'detalle_curso_screen.dart';
 import '../../utils/sound_manager.dart';
+import '../../widgets/sita_dashboard_ui.dart';
 
 class DocenteHomeScreen extends StatefulWidget {
   const DocenteHomeScreen({super.key});
@@ -130,103 +131,202 @@ class _DocenteHomeScreenState extends State<DocenteHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Clases'),
-        backgroundColor: const Color(0xFFD32F2F),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: sitaInk,
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.school_rounded, color: sitaRed, size: 27),
+            SizedBox(width: 9),
+            Text(
+              'SITA',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+                color: sitaInk,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: 'Cerrar sesión',
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_rounded),
             onPressed: _logout,
           ),
         ],
       ),
-
       floatingActionButton: _pendientesOffline > 0
           ? FloatingActionButton.extended(
               onPressed: _isLoading
                   ? null
                   : () => _sincronizar(enSegundoPlano: false),
-              backgroundColor: Colors.orange,
-              icon: const Icon(Icons.cloud_upload),
+              backgroundColor: const Color(0xFFF4A340),
+              foregroundColor: sitaInk,
+              icon: const Icon(Icons.cloud_upload_outlined),
               label: Text('Sincronizar ($_pendientesOffline)'),
             )
           : null,
-
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _materias.isEmpty
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.menu_book_outlined, size: 54, color: Colors.grey),
-                    SizedBox(height: 12),
-                    Text('No tienes materias asignadas', textAlign: TextAlign.center),
-                  ],
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 90),
+              children: [
+                SitaHeroBanner(
+                  section: 'DOCENTE',
+                  title: 'Mis clases\ny asignaturas',
+                  description:
+                      'Accede a tus cursos y administra el registro de asistencia.',
+                  counterLabel: '${_materias.length} materias asignadas',
+                  icon: Icons.co_present_outlined,
                 ),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _materias.length,
-              itemBuilder: (context, index) {
-                final materia = _materias[index];
-                final curso = materia['curso'];
-
-                return Card(
-                  elevation: 1,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    leading: const CircleAvatar(
-                      backgroundColor: const Color(0xFFD32F2F),
-                      child: Icon(Icons.book, color: Colors.white),
+                if (_pendientesOffline > 0) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF5E7),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFF9D9A7)),
                     ),
-                    title: Text(
-                      materia['nombre'],
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    subtitle: Text("${curso['nombre']} (${curso['gestion']})"),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.grey,
-                      size: 20,
-                    ),
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DetalleCursoScreen(
-                            materiaId: materia['id'],
-                            nombreMateria: materia['nombre'],
-                            nombreCurso:
-                                "${curso['nombre']} (${curso['gestion']})",
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.cloud_upload_outlined,
+                          color: Color(0xFFB66B0A),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Tienes $_pendientesOffline registros pendientes de sincronizar.',
+                            style: const TextStyle(
+                              color: Color(0xFF8A530F),
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                      );
-                      // Al volver de escanear, verificamos si se guardó algo offline para mostrar el botón
-                      _verificarOffline();
-
-                      // Intentamos forzar una revisión de red por si el internet volvió justo al salir de la cámara
-                      if (_pendientesOffline > 0) {
-                        final connectivityResult = await Connectivity()
-                            .checkConnectivity();
-                        if (!connectivityResult.contains(
-                          ConnectivityResult.none,
-                        )) {
-                          _sincronizar(enSegundoPlano: true);
-                        }
-                      }
-                    },
+                      ],
+                    ),
                   ),
-                );
-              },
+                ],
+                const SizedBox(height: 29),
+                const SitaSectionTitle(
+                  title: 'Asignaturas a cargo',
+                  subtitle: 'Selecciona una materia para ver sus estudiantes.',
+                ),
+                const SizedBox(height: 15),
+                if (_materias.isEmpty)
+                  const SitaEmptyPanel(
+                    icon: Icons.menu_book_outlined,
+                    title: 'No tienes materias asignadas',
+                    description:
+                        'Tus cursos aparecerán aquí cuando sean asignados.',
+                  ),
+                ..._materias.map((materia) {
+                  final curso = materia['curso'];
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 13),
+                    child: Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DetalleCursoScreen(
+                                materiaId: materia['id'],
+                                nombreMateria: materia['nombre'],
+                                nombreCurso:
+                                    "${curso['nombre']} (${curso['gestion']})",
+                              ),
+                            ),
+                          );
+                          // Se mantiene la revisión de registros sin conexión.
+                          _verificarOffline();
+                          if (_pendientesOffline > 0) {
+                            final connectivityResult = await Connectivity()
+                                .checkConnectivity();
+                            if (!connectivityResult.contains(
+                              ConnectivityResult.none,
+                            )) {
+                              _sincronizar(enSegundoPlano: true);
+                            }
+                          }
+                        },
+                        child: Ink(
+                          padding: const EdgeInsets.all(17),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(0xFFE8ECF2),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: sitaRed.withAlpha(19),
+                                  borderRadius: BorderRadius.circular(17),
+                                ),
+                                child: const Icon(
+                                  Icons.auto_stories_outlined,
+                                  color: sitaRed,
+                                  size: 29,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      materia['nombre'],
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: sitaInk,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 7),
+                                    Text(
+                                      "${curso['nombre']} · Gestión ${curso['gestion']}",
+                                      style: const TextStyle(
+                                        color: sitaMuted,
+                                        fontSize: 12.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF7F0F0),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: sitaRed,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
             ),
     );
   }
