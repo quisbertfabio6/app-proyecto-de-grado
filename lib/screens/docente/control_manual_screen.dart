@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../services/asistencia_cierre_service.dart';
@@ -97,13 +98,23 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
     final fecha = _fechaSeleccionada;
     setState(() => _guardando = true);
     try {
-      final pendientes = await DatabaseHelper().getPendientes();
-      if (!mounted) return;
-      if (pendientes.any((a) =>
-          a['materia_id'] == widget.materiaId && a['fecha'] == fecha)) {
-        _mostrarMensaje('Hay asistencias offline pendientes de esta clase. '
-            'Sincronízalas desde el inicio del docente antes de finalizar.');
-        return;
+      // sqflite no tiene backend web configurado en SITA.
+      // En Android/iOS se mantiene la comprobación de pendientes locales.
+      if (!kIsWeb) {
+        try {
+          final pendientes = await DatabaseHelper().getPendientes();
+          if (!mounted) return;
+          if (pendientes.any((a) =>
+              a['materia_id'] == widget.materiaId && a['fecha'] == fecha)) {
+            _mostrarMensaje('Hay asistencias offline pendientes de esta clase. '
+                'Sincronízalas desde el inicio del docente antes de finalizar.');
+            return;
+          }
+        } catch (_) {
+          _mostrarMensaje('No se pudieron comprobar las asistencias offline. '
+              'Revisa el almacenamiento local antes de finalizar.');
+          return;
+        }
       }
 
       final confirmar = await showDialog<bool>(
@@ -114,7 +125,8 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
             'Materia: ${widget.nombreMateria}\nFecha: $fecha\n\n'
             'Se marcará falta a quienes no tengan registro y se respetarán '
             'las licencias aprobadas. Confirma que la clase se realizó y que '
-            'no quedan escaneos pendientes en otros dispositivos.',
+            'no quedan escaneos pendientes en otros dispositivos.'
+            '${kIsWeb ? "\n\nEn la versión web no se pueden consultar los registros offline de los celulares. Sincronízalos antes de continuar." : ""}',
           ),
           actions: [
             TextButton(
