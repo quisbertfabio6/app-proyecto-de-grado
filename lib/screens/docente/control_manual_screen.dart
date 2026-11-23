@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../services/asistencia_cierre_service.dart';
+import '../../utils/database_helper.dart';
 
 class ControlManualScreen extends StatefulWidget {
   final int materiaId;
@@ -20,6 +22,10 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
   List<String> _fechasDisponibles = []; 
   String _fechaSeleccionada = ""; 
   bool _isLoading = true;
+  bool _guardando = false;
+
+  bool get _esHoy => _fechasDisponibles.isNotEmpty &&
+      _fechaSeleccionada == _fechasDisponibles.first;
 
   @override
   void initState() {
@@ -46,7 +52,7 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
     }
   }
 
-  void _cargarLista() async {
+  Future<void> _cargarLista() async {
     setState(() => _isLoading = true);
     // Ahora sí ApiService acepta el parámetro 'fecha'
     final lista = await ApiService.getListaControl(widget.materiaId, fecha: _fechaSeleccionada);
@@ -58,19 +64,105 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
     }
   }
 
-  void _cambiarEstado(int id, String nuevoEstado) async {
-    setState(() {
-      final index = _estudiantes.indexWhere((e) => e['id'] == id);
-      if (index != -1) {
-        _estudiantes[index]['estado_hoy'] = nuevoEstado;
-      }
-    });
-
-    await ApiService.registrarManual(
-      estudianteId: id,
-      materiaId: widget.materiaId,
-      estado: nuevoEstado,
+  void _mostrarMensaje(String mensaje) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(mensaje)),
     );
+  }
+
+  Future<void> _cambiarEstado(int id, String nuevoEstado) async {
+    if (_guardando || _isLoading || !_esHoy) return;
+    setState(() => _guardando = true);
+    try {
+      final resultado = await ApiService.registrarManual(
+        estudianteId: id,
+        materiaId: widget.materiaId,
+        estado: nuevoEstado,
+      );
+      if (!mounted) return;
+      if (resultado['success'] != true) {
+        _mostrarMensaje(resultado['message']?.toString() ?? 'No se pudo registrar.');
+      }
+      await _cargarLista();
+    } catch (_) {
+      _mostrarMensaje('No se pudo registrar la asistencia.');
+    } finally {
+      if (mounted) setState(() => _guardando = false);
+    }
+  }
+
+  Future<void> _finalizarAsistencia() async {
+    if (_guardando || _isLoading || !_esHoy || _estudiantes.isEmpty) return;
+    final fecha = _fechaSeleccionada;
+    setState(() => _guardando = true);
+    try {
+      final pendientes = await DatabaseHelper().getPendientes();
+      if (!mounted) return;
+      if (pendientes.any((a) =>
+          a['materia_id'] == widget.materiaId && a['fecha'] == fecha)) {
+        _mostrarMensaje('Hay asistencias offline pendientes de esta clase. '
+            'Sincronízalas desde el inicio del docente antes de finalizar.');
+        return;
+      }
+
+      final confirmar = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Finalizar asistencia'),
+          content: Text(
+            'Materia: ${widget.nombreMateria}\nFecha: $fecha\n\n'
+            'Se marcará falta a quienes no tengan registro y se respetarán '
+            'las licencias aprobadas. Confirma que la clase se realizó y que '
+            'no quedan escaneos pendientes en otros dispositivos.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Finalizar'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || confirmar != true) return;
+
+      final resultado = await AsistenciaCierreService.finalizar(
+        materiaId: widget.materiaId,
+        fecha: fecha,
+      );
+      if (!mounted) return;
+      if (resultado['success'] != true) {
+        _mostrarMensaje(resultado['message']?.toString() ?? 'No se pudo finalizar.');
+        return;
+      }
+      await _cargarLista();
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Asistencia finalizada'),
+          content: Text(
+            'Faltas generadas: ${resultado['faltas_generadas']}\n'
+            'Licencias registradas: ${resultado['licencias_registradas']}\n'
+            'Registros conservados: ${resultado['registros_conservados']}',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Aceptar'),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      _mostrarMensaje('No se pudo finalizar. Revisa la conexión y vuelve a intentar.');
+    } finally {
+      if (mounted) setState(() => _guardando = false);
+    }
   }
 
   @override
@@ -81,6 +173,17 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         elevation: 0,
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: FilledButton.icon(
+            onPressed: _guardando || _isLoading || !_esHoy || _estudiantes.isEmpty
+                ? null : _finalizarAsistencia,
+            icon: const Icon(Icons.fact_check),
+            label: Text(_guardando ? 'Procesando...' : 'Finalizar asistencia'),
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -110,7 +213,7 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
                     selected: esSeleccionada,
                     selectedColor: Theme.of(context).colorScheme.surface,
                     backgroundColor: Theme.of(context).colorScheme.primary,
-                    onSelected: (bool selected) {
+                    onSelected: _guardando || _isLoading ? null : (bool selected) {
                       if (selected) {
                         setState(() => _fechaSeleccionada = fecha);
                         _cargarLista();
@@ -197,7 +300,8 @@ class _ControlManualScreenState extends State<ControlManualScreen> {
       iconSize: actual == target ? 30 : 24,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
-      onPressed: () => _cambiarEstado(id, target),
+      onPressed: _guardando || _isLoading || !_esHoy
+          ? null : () => _cambiarEstado(id, target),
     );
   }
 }
